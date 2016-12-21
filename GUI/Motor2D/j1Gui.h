@@ -12,15 +12,9 @@ enum ElementType
 	IMAGE,
 	BUTTON,
 	TEXT,
+	TEXTBOX
 };
 
-/*enum MouseState
-{
-	MOUSE_OUT,
-	RIGHT_CLICK,
-	LEFT_CLICK,
-	MOUSE_OVER,
-};*/
 //-----------------UI_ELEMENT------------------
 
 class UI_Element
@@ -63,7 +57,6 @@ private:
 	iPoint pos;
 	SDL_Rect rect;
 	SDL_Rect collisionBox;
-	
 	
 	bool is_moving = false;
 	bool active;
@@ -165,6 +158,7 @@ public:
 	~Image();
 	bool Update();
 	void Draw();
+	bool Is_Over();
 
 	SDL_Texture* texture;
 };
@@ -207,5 +201,25 @@ private:
 	
 };
 //---------------------------Text_END-------------------
+//---------------------------TextBox--------------------
+class TextBox :public UI_Element
+{
+public:
+	TextBox(SDL_Rect rect, iPoint pos, bool isActive, bool isVisible, const char* word);
+	~TextBox();
 
+	bool Update();
+	void Draw();
+	void SetString(const char* word);
+	const char* GetText();
+	bool Is_Over();
+
+
+private:
+	//Font* font;
+	p2SString textInput;
+	bool is_selected;
+	SDL_Texture* texture;
+};
+//---------------------------TextBox_END-----------------
 #endif // __j1GUI_H__

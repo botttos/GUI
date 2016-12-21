@@ -46,36 +46,101 @@ bool j1Scene::Start()
 	debug_tex = App->tex->Load("maps/path2.png");
 
 	// SCENE ELEMENTS
-	//TODO
 	UI_Scene* scene;
 	scene = App->gui->CreateScene();
 	App->gui->OpenScene(scene);
 
+	//Image
+	image = (Image*)scene->CreateElement(IMAGE);
+	image->SetRect(SDL_Rect{ 494, 642, 332, 50, });
+	image->SetPos(450, 100, 332, 50);
 	// Button
 	button = (Button*)scene->CreateElement(BUTTON);
 	button->SetRect(SDL_Rect{ 5, 118, 219, 58 });
 	button->SetPos(350, 150, 219, 58);
 	
 	// Text1
-	button->childs.add(text1);
 	text1 = (Text*)scene->CreateElement(TEXT);
 	text1->SetString("Hello World");
 	int w, h;
 	App->font->CalcSize(text1->GetText(), w, h);
 	text1->SetPos(300, 100, w, h);
+	button->childs.add(text1);
 
-	/* PISTOLA
-	UI_Element* element;
-	element = scene->CreateElement(LABEL);
-	element->SetRect(SDL_Rect{ 485, 829, 328, 103 });
-	element->SetPos(300, 100, 328, 103);*/
+	// Textbox
+	textbox = (TextBox*)scene->CreateElement(TEXTBOX);
+	textbox->SetString("");
+	App->font->CalcSize(textbox->GetText(), w, h);
+	textbox->SetRect(SDL_Rect{ 0, 0, 0, 0, });
+	textbox->SetPos(450, 100, w, h);
+	
+	//Slider Image
+	slider = (Image*)scene->CreateElement(IMAGE);
+	slider->SetRect(SDL_Rect{ 972, 786, 10, 156, });
+	slider->SetPos(450, 400, 332, 50);
 
+	//SliderButton
+	sliderbutton = (Button*)scene->CreateElement(BUTTON);
+	sliderbutton->SetRect(SDL_Rect{ 958, 936, 10, 9 });
+	sliderbutton->SetPos(450, 400, 332, 50);
+	sliderbutton->childs.add(text1);
+
+	//Label
+	label = (Label*)scene->CreateElement(LABEL);
+	label->SetRect(SDL_Rect{ 5, 118, 219, 58 });
+	label->SetPos(250, 50, 332, 50);
+	label->SetString("Helloo");
+	label->SetTextPos(20, 20);
+	
 	return true;
 }
 
 // Called each loop iteration
 bool j1Scene::PreUpdate()
 {
+	// MOVEMENT ----------------------------
+	if ((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_REPEAT && text1->Is_Over() == true) || text1->IsMoving() == true)
+	{
+		int x, y;
+		App->input->GetMouseMotion(x, y);
+		text1->SetPos(text1->GetPos().x + x, text1->GetPos().y + y);
+		text1->SetMovingTo(true);
+	}
+	
+	else if ((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_REPEAT && button->Is_Over() == true) || button->IsMoving() == true)
+	{
+		int x, y;
+		App->input->GetMouseMotion(x, y);
+		button->MoveElement(x, y);
+		//Lateral Scroll
+		SDL_Rect r = { button->GetRect().x - x, button->GetRect().y, button->GetRect().w , button->GetRect().h };
+		button->SetRect(r);
+		//End lateral 
+		button->SetMovingTo(true);
+	}
+
+	if ((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP))
+	{
+		text1->SetMovingTo(false);
+	}
+
+	if ((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP))
+	{
+		button->SetMovingTo(false);
+	}
+	//-------Slider
+	if ((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_REPEAT && sliderbutton->Is_Over() == true) || sliderbutton->IsMoving() == true)
+	{
+		int x, y;
+		App->input->GetMouseMotion(x, y);
+		sliderbutton->MoveElement(0, y);
+		sliderbutton->SetMovingTo(true);
+	}
+	if ((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP))
+	{
+		sliderbutton->SetMovingTo(false);
+	}
+	// STATIC ------------------------------------------------
 	// Button
 	
 	if (button->Is_Over() == true)
@@ -91,45 +156,19 @@ bool j1Scene::PreUpdate()
 	{
 		button->SetRect(SDL_Rect{ 6, 116, 219, 58 });
 	}
-
-	if ((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_REPEAT && button->Is_Over() == true) || button->IsMoving() == true)
-	{
-		int x, y;
-		App->input->GetMouseMotion(x, y);
-		button->MoveElement(x, y);
-		button->SetMovingTo(true);
-	}
-	if ((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP))
-	{
-		button->SetMovingTo(false);
-	}
 	
-	/*
-	if ((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_REPEAT && button->Is_Over() == true) || button->IsMoving() == true)
-	{
-		int x, y;
-		App->input->GetMouseMotion(x, y);
-		button->SetPos(button->GetPos().x + x, button->GetPos().y + y);
-		button->SetMovingTo(true);
-	}
-	if ((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP))
-	{
-		button->SetMovingTo(false);
-	}
-	*/
-
 	// Text1
 	if (text1->Is_Over() == true)
 	{
-		text1->SetString("EY FUERA DE MI!");
+		text1->SetString("Mouse over");
 
 		if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT))
 		{
-			text1->SetString("Botonsito izquierdo jiji");
+			text1->SetString("Left button");
 		}
 		if (App->input->GetMouseButtonDown(SDL_BUTTON_RIGHT))
 		{
-			text1->SetString("Botonsito derecho jiji");
+			text1->SetString("Right button");
 		}
 	}
 	else
@@ -137,21 +176,16 @@ bool j1Scene::PreUpdate()
 		text1->SetString("Hello World");
 	}
 
-	if ((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_REPEAT && text1->Is_Over() == true) || text1->IsMoving() == true)
+	//TextBox
+	if (image->Is_Over() == true)
 	{
-		int x, y;
-		App->input->GetMouseMotion(x, y);
-		text1->SetPos(text1->GetPos().x + x, text1->GetPos().y + y);
-		text1->SetMovingTo(true);
+		if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT))
+		{
+			textbox->SetRect(SDL_Rect{ 958, 936, 10, 9});
+		}
 	}
-	if((App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP))
-	{
-		text1->SetMovingTo(false);
-	}
-
-
-
-	// debug pathfing ------------------
+	
+	// debug pathfing ---------------------------------------------------
 	static iPoint origin;
 	static bool origin_selected = false;
 

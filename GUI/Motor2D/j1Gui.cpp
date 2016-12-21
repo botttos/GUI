@@ -30,6 +30,7 @@ bool j1Gui::Awake(pugi::xml_node& conf)
 // Called before the first frame
 bool j1Gui::Start()
 {
+	//Change image
 	atlas = App->tex->Load(atlas_file_name.GetString());
 
 	return true;
@@ -149,13 +150,15 @@ UI_Element * UI_Scene::CreateElement(ElementType type)
 		elements.PushBack(ret);
 		break;
 	case BUTTON:
-		ret = new Button(SDL_Rect{ 0,0,0,0 }, iPoint(0, 0), true, true); //, MOUSE_OUT
+		ret = new Button(SDL_Rect{ 0,0,0,0 }, iPoint(0, 0), true, true);
 		elements.PushBack(ret);
 		break;
 	case TEXT:
-		ret = new Text(SDL_Rect{ 0,0,0,0 }, iPoint(0, 0), true, true, "text");
+		ret = new Text(SDL_Rect{ 0,0,0,0 }, iPoint(0, 0), true, true, " ");
 		elements.PushBack(ret);
-
+	case TEXTBOX:
+		ret = new TextBox(SDL_Rect{ 0,0,0,0 }, iPoint(0, 0), true, true, "default");
+		elements.PushBack(ret);
 		break;
 	default:
 		ret = nullptr;
@@ -274,13 +277,14 @@ void UI_Element::MoveElement(int x, int y)
 	collisionBox.x = collisionBox.x + x;
 	collisionBox.y = collisionBox.y + y;
 
-	// TODO, SI TIENE HIJOS EXPLOTA BOOOM
 	if (childs.start != nullptr)
 	{
-		for (p2List_item<UI_Element*>* it = childs.start; it->next->data != nullptr; it->next)
+		p2List_item<UI_Element*>* it = childs.start;
+		for (; it->next != nullptr; it = it->next)
 		{
 			it->data->MoveElement(x, y);
 		}
+		it->data->MoveElement(x, y);
 	}
 	
 }
@@ -342,6 +346,7 @@ void Label::SetString(const char * word)
 }
 bool Label::Is_Over()
 {
+	return false;
 	int x, y;
 	App->input->GetMousePosition(x, y);
 	if (x > GetCollisionBox().x && x < (GetCollisionBox().w + GetCollisionBox().x) &&
@@ -370,14 +375,29 @@ void Image::Draw()
 {
 	if (IsVisible() == true) 
 	{
-		if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_REPEAT)
+		/*if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_REPEAT)
 		{
 			int x, y;
 			App->input->GetMousePosition(x, y);
 			App->render->Blit(App->gui->GetAtlas(), GetPos().x - App->render->camera.x -x, GetPos().y - App->render->camera.y -y, &GetRect());
 		}
-		else
+		else*/
 		App->render->Blit(App->gui->GetAtlas(), GetPos().x - App->render->camera.x, GetPos().y - App->render->camera.y, &GetRect());
+	}
+}
+
+bool Image::Is_Over()
+{
+	int x, y;
+	App->input->GetMousePosition(x, y);
+	if (x > GetCollisionBox().x && x < (GetCollisionBox().w + GetCollisionBox().x) &&
+		y > GetCollisionBox().y && y < (GetCollisionBox().h + GetCollisionBox().y))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
 
@@ -390,7 +410,7 @@ bool Image::Update()
 
 // START Button---------------------------------------------------------
 
-Button::Button(SDL_Rect rect, iPoint pos, bool isActive, bool isVisible) :UI_Element(rect, pos, isActive, isVisible) //, buttonstate(buttonstate), enum MouseState buttonstate
+Button::Button(SDL_Rect rect, iPoint pos, bool isActive, bool isVisible) :UI_Element(rect, pos, isActive, isVisible)
 {
 }
 
@@ -400,7 +420,8 @@ Button::~Button()
 
 void Button::Draw()
 {
-	if (IsVisible() == true) {
+	if (IsVisible() == true) 
+	{
 		App->render->Blit(App->gui->GetAtlas(), GetPos().x - App->render->camera.x, GetPos().y - App->render->camera.y, &GetRect());
 	}
 }
@@ -416,34 +437,6 @@ void Button::HandleInput()
 {
 
 }
-
-/*MouseState Button::GetMouseState()
-{
-	if (Is_Over() == false)
-	{
-		buttonstate = MOUSE_OUT;
-		return MOUSE_OUT;
-	}
-	else
-	{
-		if (App->input->GetMouseButtonDown(SDL_BUTTON_RIGHT) == true)
-		{
-			buttonstate = RIGHT_CLICK;
-			return RIGHT_CLICK;
-		}
-		else if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == true)
-		{
-			buttonstate = LEFT_CLICK;
-			return LEFT_CLICK;
-		}
-		else if (Is_Over() == true)
-		{
-			buttonstate = MOUSE_OVER;
-			return MOUSE_OVER;
-		}
-	}
-	return MOUSE_OUT;
-}*/
 
 bool Button::Is_Over()
 {
@@ -511,4 +504,51 @@ bool Text::Is_Over()
 	}
 }
 
+TextBox::TextBox(SDL_Rect rect, iPoint pos, bool isActive, bool isVisible, const char * word) : UI_Element(rect, pos, isActive, isVisible)
+{
+	textInput = word;
+}
 
+TextBox::~TextBox()
+{
+}
+
+bool TextBox::Update()
+{
+	Draw();
+	return true;
+}
+
+void TextBox::Draw()
+{
+	if (IsVisible() == true)
+	{
+		App->render->Blit(App->gui->GetAtlas(), GetPos().x - App->render->camera.x, GetPos().y - App->render->camera.y, &GetRect());
+		App->render->Blit(App->font->Print(textInput.GetString()), GetPos().x - App->render->camera.x, GetPos().y - App->render->camera.y);
+	}
+}
+
+void TextBox::SetString(const char * word)
+{
+	textInput = word;
+}
+
+const char * TextBox::GetText()
+{
+	return textInput.GetString();
+}
+
+bool TextBox::Is_Over()
+{
+	int x, y;
+	App->input->GetMousePosition(x, y);
+	if (x > GetCollisionBox().x && x < (GetCollisionBox().w + GetCollisionBox().x) &&
+		y > GetCollisionBox().y && y < (GetCollisionBox().h + GetCollisionBox().y))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}

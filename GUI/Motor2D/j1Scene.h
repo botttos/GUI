@@ -8,6 +8,9 @@ class GuiImage;
 class GuiText;
 class Button;
 class Text;
+class TextBox;
+class Image;
+class Label;
 
 class j1Scene : public j1Module
 {
@@ -42,7 +45,11 @@ private:
 	GuiText* text;
 	Button* button;
 	Text* text1;
-	
+	TextBox* textbox;
+	Image* image;
+	Image* slider;
+	Button* sliderbutton;
+	Label* label;
 };
 
 #endif // __j1SCENE_H__
